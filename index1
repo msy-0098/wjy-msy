@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>佳茵姐姐专属登录</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Microsoft YaHei', 'Comic Sans MS', sans-serif;
+        }
+
+        /* 延续马卡龙柔和风格 */
+        body {
+            background-color: #fff9f5;
+            color: #666;
+            line-height: 1.6;
+            padding: 20px 15px;
+            background-image: 
+                radial-gradient(#ffd6e0 4px, transparent 4px),
+                radial-gradient(#d6eaff 4px, transparent 4px);
+            background-size: 30px 30px;
+            background-position: 0 0, 15px 15px;
+            background-opacity: 0.2;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-container {
+            max-width: 420px;
+            width: 100%;
+            background-color: #fff;
+            padding: 30px 25px;
+            border-radius: 20px;
+            box-shadow: 0 6px 18px rgba(255, 182, 193, 0.15);
+            border: 1px solid #ffe6f0;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 28px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed #ffe6f0;
+        }
+
+        .login-header h1 {
+            color: #ff6b8b;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .login-header h1::before,
+        .login-header h1::after {
+            content: "💖";
+            font-size: 1.4rem;
+        }
+
+        .login-header p {
+            color: #888;
+            font-size: 0.95rem;
+        }
+
+        /* 输入组样式：萌系图标+柔和边框 */
+        .input-group {
+            margin-bottom: 22px;
+            position: relative;
+        }
+
+        .input-group::before {
+            content: "";
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.1rem;
+            color: #ff85a2;
+        }
+
+        .input-group.username::before {
+            content: "👤";
+        }
+
+        .input-group.password::before {
+            content: "🔑";
+        }
+
+        .login-input {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            border: 2px solid #ffe6f0;
+            border-radius: 30px;
+            font-size: 1rem;
+            color: #666;
+            transition: all 0.3s ease;
+            background-color: #fff;
+        }
+
+        .login-input:focus {
+            outline: none;
+            border-color: #ffb3d9;
+            box-shadow: 0 0 0 3px rgba(255, 182, 193, 0.2);
+        }
+
+        .login-input::placeholder {
+            color: #ccc;
+            font-size: 0.95rem;
+        }
+
+        /* 按钮样式：粉色系+萌系交互 */
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-login {
+            background-color: #ff85a2;
+            color: white;
+            margin-bottom: 12px;
+        }
+
+        .btn-login::after {
+            content: "🚀";
+        }
+
+        .btn-login:hover {
+            background-color: #ff6b8b;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(255, 182, 193, 0.2);
+        }
+
+        .btn-change-pwd {
+            background-color: #fff;
+            color: #ff85a2;
+            border: 2px solid #ffe6f0;
+        }
+
+        .btn-change-pwd::after {
+            content: "🔄";
+        }
+
+        .btn-change-pwd:hover {
+            background-color: #fff0f5;
+            border-color: #ffb3d9;
+        }
+
+        /* 密码修改模态框：居中+柔和样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(5px);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            width: 100%;
+            max-width: 380px;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 6px 20px rgba(255, 182, 193, 0.18);
+            border: 1px solid #ffe6f0;
+            position: relative;
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #ff6b8b;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 1.2rem;
+            color: #888;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close-modal:hover {
+            color: #ff6b8b;
+        }
+
+        .btn-group-modal {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .btn-cancel {
+            background-color: #fff;
+            color: #888;
+            border: 2px solid #eee;
+        }
+
+        .btn-confirm-change {
+            background-color: #ff85a2;
+            color: white;
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 400px) {
+            .login-container {
+                padding: 25px 20px;
+            }
+
+            .login-header h1 {
+                font-size: 1.5rem;
+            }
+
+            .modal-content {
+                padding: 20px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h1>佳茵姐姐专属登录</h1>
+            <p>请输入用户名和密码~</p>
+        </div>
+
+        <!-- 登录表单 -->
+        <form id="loginForm">
+            <div class="input-group username">
+                <input type="text" class="login-input" id="username" placeholder="请输入用户名呀～" required>
+            </div>
+            <div class="input-group password">
+                <input type="password" class="login-input" id="password" placeholder="请输入密码呀～" required>
+            </div>
+            <button type="submit" class="btn btn-login">确认登录</button>
+            <button type="button" class="btn btn-change-pwd" id="openChangePwdModal">更改密码</button>
+        </form>
+    </div>
+
+    <!-- 密码修改模态框 -->
+    <div class="modal" id="changePwdModal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeModal">&times;</span>
+            <div class="modal-header">修改密码</div>
+            <div class="input-group username">
+                <input type="text" class="login-input" id="changeUsername" placeholder="请输入用户名（仅支持佳茵）" required>
+            </div>
+            <div class="input-group password">
+                <input type="password" class="login-input" id="oldPassword" placeholder="请输入原密码～" required>
+            </div>
+            <div class="input-group password">
+                <input type="password" class="login-input" id="newPassword" placeholder="请输入新密码～" required>
+            </div>
+            <div class="input-group password">
+                <input type="password" class="login-input" id="confirmNewPassword" placeholder="请确认新密码～" required>
+            </div>
+            <div class="btn-group-modal">
+                <button type="button" class="btn btn-cancel" id="cancelChange">取消</button>
+                <button type="button" class="btn btn-confirm-change" id="confirmChange">确认修改</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. 单用户配置（仅支持"佳茵"）
+        const targetUser = "佳茵"; // 固定目标用户
+        let userPassword = "050904"; // 初始密码，可修改
+        // 核心修改：将跳转链接改为指定的Netlify网址
+        const targetUrl = "https://rainhometest.netlify.app/"; 
+
+        // 2. DOM元素获取
+        const loginForm = document.getElementById("loginForm");
+        const usernameInput = document.getElementById("username");
+        const passwordInput = document.getElementById("password");
+
+        // 密码修改模态框元素
+        const changePwdModal = document.getElementById("changePwdModal");
+        const openChangePwdModalBtn = document.getElementById("openChangePwdModal");
+        const closeModalBtn = document.getElementById("closeModal");
+        const cancelChangeBtn = document.getElementById("cancelChange");
+        const confirmChangeBtn = document.getElementById("confirmChange");
+        const changeUsernameInput = document.getElementById("changeUsername");
+        const oldPasswordInput = document.getElementById("oldPassword");
+        const newPasswordInput = document.getElementById("newPassword");
+        const confirmNewPasswordInput = document.getElementById("confirmNewPassword");
+
+        // 3. 核心登录逻辑（严格验证用户名+密码）
+        loginForm.addEventListener("submit", function(e) {
+            e.preventDefault(); // 阻止表单默认提交
+            const inputUsername = usernameInput.value.trim();
+            const inputPassword = passwordInput.value.trim();
+
+            // 第一步：验证用户名是否为"佳茵"
+            if (inputUsername !== targetUser) {
+                alert("用户不存在"); // 按需求弹窗提示
+                usernameInput.value = "";
+                passwordInput.value = "";
+                usernameInput.focus();
+                return;
+            }
+
+            // 第二步：验证密码是否正确
+            if (inputPassword !== userPassword) {
+                alert("密码错误，请重新输入"); // 弹窗提示密码错误
+                passwordInput.value = "";
+                passwordInput.focus();
+                return;
+            }
+
+            // 登录成功：弹窗提示+跳转至指定Netlify网址
+            alert(`欢迎回来，${targetUser}！即将进入心情小管家～`);
+            setTimeout(() => {
+                // 存储当前登录用户（供后续界面使用）
+                localStorage.setItem("currentLoginUser", targetUser);
+                // 核心修改：跳转至指定网址
+                window.location.href = targetUrl;
+            }, 1200);
+        });
+
+        // 4. 密码修改模态框控制
+        // 打开模态框
+        openChangePwdModalBtn.addEventListener("click", function() {
+            changePwdModal.style.display = "flex";
+            // 清空模态框输入
+            changeUsernameInput.value = "";
+            oldPasswordInput.value = "";
+            newPasswordInput.value = "";
+            confirmNewPasswordInput.value = "";
+        });
+
+        // 关闭模态框（三种触发方式）
+        function closeModal() {
+            changePwdModal.style.display = "none";
+        }
+        closeModalBtn.addEventListener("click", closeModal);
+        cancelChangeBtn.addEventListener("click", closeModal);
+        window.addEventListener("click", function(e) {
+            if (e.target === changePwdModal) {
+                closeModal();
+            }
+        });
+
+        // 5. 密码修改逻辑（仅允许修改"佳茵"的密码）
+        confirmChangeBtn.addEventListener("click", function() {
+            const inputChangeUser = changeUsernameInput.value.trim();
+            const inputOldPwd = oldPasswordInput.value.trim();
+            const inputNewPwd = newPasswordInput.value.trim();
+            const inputConfirmNewPwd = confirmNewPasswordInput.value.trim();
+
+            // 验证1：用户名必须是"佳茵"
+            if (inputChangeUser !== targetUser) {
+                alert("仅支持修改" + targetUser + "的密码");
+                changeUsernameInput.value = "";
+                changeUsernameInput.focus();
+                return;
+            }
+
+            // 验证2：原密码必须正确
+            if (inputOldPwd !== userPassword) {
+                alert("原密码错误，无法修改");
+                oldPasswordInput.value = "";
+                oldPasswordInput.focus();
+                return;
+            }
+
+            // 验证3：新密码不为空且长度≥6
+            if (!inputNewPwd || inputNewPwd.length < 6) {
+                alert("新密码至少需要6位字符");
+                newPasswordInput.value = "";
+                newPasswordInput.focus();
+                return;
+            }
+
+            // 验证4：两次新密码一致
+            if (inputNewPwd !== inputConfirmNewPwd) {
+                alert("两次输入的新密码不一致");
+                confirmNewPasswordInput.value = "";
+                confirmNewPasswordInput.focus();
+                return;
+            }
+
+            // 验证5：新密码不能与原密码相同
+            if (inputNewPwd === inputOldPwd) {
+                alert("新密码不能与原密码相同");
+                newPasswordInput.value = "";
+                confirmNewPasswordInput.value = "";
+                newPasswordInput.focus();
+                return;
+            }
+
+            // 所有验证通过：更新密码+提示+关闭模态框
+            userPassword = inputNewPwd;
+            alert("密码修改成功！下次登录请使用新密码");
+            closeModal();
+            // 同步更新登录表单的密码（提升体验）
+            passwordInput.value = inputNewPwd;
+        });
+    </script>
+</body>
+</html>
