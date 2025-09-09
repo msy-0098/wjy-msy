@@ -1,543 +1,443 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
+<!doctype html>
+<html>
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>佳茵姐姐专属</title>
+    <meta charset="utf-8">
+    <title>爱心</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Microsoft YaHei', 'Comic Sans MS', sans-serif;
-        }
-        
-        /* 柔和底色+淡纹背景，简约不单调 */
+        html,
         body {
-            background-color: #fff9f5;
-            color: #666;
-            line-height: 1.6;
-            padding: 20px 15px;
-            background-image: 
-                radial-gradient(#ffd6e0 4px, transparent 4px),
-                radial-gradient(#d6eaff 4px, transparent 4px);
-            background-size: 30px 30px;
-            background-position: 0 0, 15px 15px;
-            background-opacity: 0.2;
-        }
-        
-        .container {
-            max-width: 700px;
-            margin: 0 auto;
-        }
-        
-        /* 圆润头部卡片 */
-        header {
-            text-align: center;
-            margin: 25px 0;
-            padding: 18px;
-            background-color: #fff;
-            border-radius: 20px;
-            box-shadow: 0 4px 12px rgba(255, 182, 193, 0.15);
-        }
-        
-        header h1 {
-            color: #ff6b8b;
-            margin-bottom: 8px;
-            font-size: 1.8rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-        
-        /* 萌系标题装饰 */
-        header h1::before,
-        header h1::after {
-            content: "🍬";
-            font-size: 1.4rem;
-        }
-        
-        .intro {
-            color: #888;
-            font-size: 1rem;
-            line-height: 1.5;
-        }
-        
-        /* 表单容器：马卡龙粉边框+圆角 */
-        .form-container {
-            background-color: #fff;
-            padding: 22px;
-            border-radius: 20px;
-            box-shadow: 0 4px 15px rgba(255, 182, 193, 0.12);
-            margin-bottom: 25px;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 12px;
-            border: 1px solid #ffe6f0;
-        }
-        
-        .form-container label {
-            font-size: 1rem;
-            color: #ff6b8b;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        
-        .form-container label::before {
-            content: "✨";
-        }
-        
-        /* 下拉框：圆润边框+柔和配色 */
-        #select_a {
-            padding: 11px 18px;
-            border: 2px solid #ffe6f0;
-            border-radius: 30px;
-            font-size: 1rem;
-            flex-grow: 1;
-            min-width: 180px;
-            transition: all 0.3s ease;
-            background-color: #fff;
-            color: #666;
-        }
-        
-        #select_a:focus {
-            outline: none;
-            border-color: #ffb3d9;
-            box-shadow: 0 0 0 3px rgba(255, 182, 193, 0.2);
-        }
-        
-        /* 按钮：粉系渐变+萌系图标 */
-        .button {
-            padding: 11px 22px;
-            cursor: pointer;
-            background-color: #ff85a2;
-            color: white;
-            border: none;
-            border-radius: 30px;
-            font-size: 1rem;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        
-        .button::after {
-            content: "💖";
-        }
-        
-        .button:hover {
-            background-color: #ff6b8b;
-            transform: translateY(-3px);
-            box-shadow: 0 6px 12px rgba(255, 182, 193, 0.2);
-        }
-        
-        .button:active {
-            transform: translateY(0);
-        }
-        
-        /* 内容块：马卡龙色系区分+弹出动画 */
-        .content-block {
-            display: none;
-            background-color: #fff;
-            margin: 18px 0;
-            padding: 22px;
-            border-radius: 20px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-            border: 2px solid;
-            animation: popIn 0.4s ease;
-            position: relative;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+            background: #000;
             overflow: hidden;
+            cursor: pointer;
+        }
+
+        canvas {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        h1 {
+            color: hotpink;
+            text-align: center;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            margin: 0;
+            z-index: 10;
+            font-size: 2.5em;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        /* 点击效果样式 */
+        .click-effect {
+            position: absolute;
+            color: hotpink;
+            pointer-events: none;
+            z-index: 20;
+            animation: fadeOut 1s forwards;
+        }
+
+        @keyframes fadeOut {
+            0% {
+                opacity: 1;
+                transform: scale(0.5);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(2);
+            }
+        }
+
+        /* 圆形唱片播放器样式 */
+        .music-player {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 30;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #333;
+            overflow: hidden;
+            box-shadow: 0 0 15px rgba(255, 105, 180, 0.5);
+            cursor: pointer;
+            transition: transform 0.3s ease;
         }
         
-        /* 角落萌系装饰（不喧宾夺主） */
-        .content-block::before {
-            content: "";
+        .music-player:hover {
+            transform: scale(1.05);
+        }
+        
+        /* 唱片旋转动画 */
+        .music-player.playing .record {
+            animation: spin 20s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .record {
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at center, #fff 8%, #333 8%, #333 12%, #666 12%, #666 15%, #333 15%, #333 85%, #666 85%, #666 88%, #333 88%);
+            position: relative;
+        }
+        
+        .record::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 15%;
+            height: 15%;
+            background: #fff;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .record::after {
+            content: '';
             position: absolute;
             top: 0;
-            right: 0;
-            width: 60px;
-            height: 60px;
-            background-size: contain;
-            background-repeat: no-repeat;
-            opacity: 0.2;
-            z-index: 0;
+            left: 48%;
+            width: 4%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
         }
         
-        /* 不同心情对应不同马卡龙色 */
-        #block1 { 
-            border-color: #b3e0b3; 
-            background-color: #f9fff9;
-        }
-        #block1::before { content: "🐻"; font-size: 40px; }
-        
-        #block2 { 
-            border-color: #ffd9b3; 
-            background-color: #fff9f0;
-        }
-        #block2::before { content: "😄"; font-size: 40px; }
-        
-        #block3 { 
-            border-color: #b3d9ff; 
-            background-color: #f0f7ff;
-        }
-        #block3::before { content: "💘"; font-size: 40px; }
-        
-        #block4 { 
-            border-color: #d9b3ff; 
-            background-color: #f7f0ff;
-        }
-        #block4::before { content: "💪"; font-size: 40px; }
-        
-        /* 可爱弹出动画 */
-        @keyframes popIn {
-            0% { opacity: 0; transform: scale(0.95) translateY(15px); }
-            100% { opacity: 1; transform: scale(1) translateY(0); }
-        }
-        
-        .content-block h3 {
-            margin-bottom: 18px;
-            color: #555;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 1.3rem;
-            position: relative;
-            z-index: 1;
-        }
-        
-        /* 小熊容器：居中+柔和过渡 */
-        .bear-container {
-            position: relative;
-            width: 140px;
-            height: 160px;
-            margin: 20px auto;
-            transition: transform 0.3s ease;
-            z-index: 1;
-        }
-        
-        /* 小熊像素：圆角更萌 */
-        .bear-container div {
-            border-radius: 2px;
-        }
-        
-        .control-buttons {
-            margin-top: 20px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: center;
-            position: relative;
-            z-index: 1;
-        }
-        
-        /* 文本框：柔和底色+圆角 */
-        .content-block p {
-            font-size: 1.05rem;
-            line-height: 1.8;
-            color: #666;
-            margin-bottom: 20px;
-            padding: 18px;
-            background-color: rgba(255, 230, 240, 0.2);
-            border-radius: 15px;
-            min-height: 70px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            position: relative;
-            z-index: 1;
-            border: 1px solid #ffe6f0;
-        }
-        
-        /* 响应式：移动端适配 */
-        @media (max-width: 600px) {
-            .form-container {
-                flex-direction: column;
-                align-items: stretch;
-                padding: 18px;
-            }
-            
-            .control-buttons {
-                flex-direction: column;
-            }
-            
-            .button {
-                width: 100%;
-                justify-content: center;
-            }
-            
-            header h1 {
-                font-size: 1.5rem;
-            }
-            
-            .content-block {
-                padding: 18px 15px;
-            }
-            
-            .bear-container {
-                width: 120px;
-                height: 140px;
-            }
+        /* 隐藏原始播放器但保持功能 */
+        .music-iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            pointer-events: none;
         }
     </style>
 </head>
+
 <body>
-    <div class="container">
-        <header>
-            <h1>佳茵姐姐专属</h1>
-            <p class="intro">选择你现在的心情，收获专属小惊喜～</p>
-        </header>
-        
-        <div class="form-container">
-            <label for="select_a">当前心情状态：</label>
-            <select id="select_a">
-                <option value="a" class="s_a">开心🥳</option>
-                <option value="b" class="s_a">难过😢</option>
-                <option value="c" class="s_a">生气😠</option>
-                <option value="d" class="s_a">郁闷😔</option>
-                <option value="e" class="s_a">EMO🥺</option>
-                <option value="null_a" class="s_a" selected>请选择～</option>
-            </select>
-            <input type="button" value="确认选择" id="btn_a" class="button" onclick="sy_a()">
-        </div>
-
-        <!-- 开心：小熊互动区 -->
-        <div id="block1" class="content-block">
-            <h3>🐻 小熊来啦</h3>
-            <div class="bear-container" id="bear"></div>
-            <div class="control-buttons">
-                <button class="button" onclick="moveBear('left')">向左走</button>
-                <button class="button" onclick="moveBear('right')">向右走</button>
-                <button class="button" onclick="moveBear('up')">向上跳</button>
-                <button class="button" onclick="moveBear('down')">向下蹲</button>
-                <button class="button" onclick="danceBear()">一起跳舞</button>
-            </div>
-        </div>
-
-        <!-- 生气：笑话治愈区 -->
-        <div id="block2" class="content-block">
-            <h3>😄 给你讲个笑话~</h3>
-            <p id="jokeText">点击按钮</p>
-            <button class="button" onclick="changeJoke()">换一换</button>
-        </div>
-
-        <!-- 难过：暖心话语区 -->
-        <div id="block3" class="content-block">
-            <h3>💖 你开心最重要~</h3>
-            <p id="comfortText">点击按钮</p>
-            <button class="button" onclick="changeComfort()">换一换</button>
-        </div>
-
-        <!-- 郁闷：鼓励打气区 -->
-        <div id="block4" class="content-block">
-            <h3>💪 你要相信自己~</h3>
-            <p id="encourageText">点击按钮</p>
-            <button class="button" onclick="changeEncourage()">换一换</button>
-        </div>
+    <canvas id="pinkboard"></canvas>
+    <h1>佳茵</h1>
+    
+    <!-- 圆形唱片播放器 -->
+    <div class="music-player" id="musicPlayer">
+        <div class="record"></div>
+        <iframe class="music-iframe" frameborder="no" border="0" marginwidth="0" marginheight="0" 
+                width="330" height="86" 
+                src="//music.163.com/outchain/player?type=2&id=2617640682&auto=1&height=66">
+        </iframe>
     </div>
 
     <script>
-    var select_a = document.querySelector("#select_a");
-    var block1 = document.getElementById("block1");
-    var block2 = document.getElementById("block2");
-    var block3 = document.getElementById("block3");
-    var block4 = document.getElementById("block4");
-    
-    // 隐藏所有内容块
-    function hideAllBlocks() {
-        block1.style.display = "none";
-        block2.style.display = "none";
-        block3.style.display = "none";
-        block4.style.display = "none";
-    }
-    
-    // 生成萌系像素小熊（优化配色+加眼睛）
-    function createBear() {
-        const bearContainer = document.getElementById('bear');
-        bearContainer.innerHTML = '';
-        
-        // 小熊像素数据（1=深粉棕，2=浅粉棕，3=白色脸部）
-        const bearPixels = [
-            [0,1,1,0,0,1,1,0],
-            [1,1,1,1,1,1,1,1],
-            [1,1,3,3,3,3,1,1],
-            [1,3,2,2,2,2,3,1],
-            [1,2,2,2,2,2,2,1],
-            [0,1,2,2,2,2,1,0],
-            [0,0,1,2,2,1,0,0],
-            [0,0,1,1,1,1,0,0],
-            [0,1,1,0,0,1,1,0],
-            [1,1,0,0,0,0,1,1],
-            [1,1,1,1,1,1,1,1],
-            [0,1,1,1,1,1,1,0],
-            [0,0,1,1,1,1,0,0],
-            [0,0,0,1,1,0,0,0]
-        ];
-        
-        // 渲染像素
-        bearPixels.forEach((row, y) => {
-            row.forEach((color, x) => {
-                if (color !== 0) {
-                    const pixel = document.createElement('div');
-                    pixel.style.position = 'absolute';
-                    pixel.style.width = '9px';
-                    pixel.style.height = '9px';
-                    pixel.style.left = `${x * 9}px`;
-                    pixel.style.top = `${y * 9}px`;
-                    
-                    // 萌系配色
-                    switch(color) {
-                        case 1: pixel.style.backgroundColor = '#d6859e'; break;
-                        case 2: pixel.style.backgroundColor = '#ffb3d9'; break;
-                        case 3: pixel.style.backgroundColor = '#ffffff'; break;
+        /*
+         * Settings
+         */
+        var settings = {
+            particles: {
+                length: 800, // 爱心的粒子数量
+                duration: 2, // 爱心扩散速度，值越小速度越快
+                velocity: 100, // 爱心扩散速度，值越小速度越慢
+                effect: -0.75, // 爱心收缩效果，比如1扩散，-2收缩
+                size: 30, // 粒子大小
+            },
+        };
+
+        /*
+         * RequestAnimationFrame polyfill by Erik Möller
+         */
+        (function () { var b = 0; var c = ["ms", "moz", "webkit", "o"]; for (var a = 0; a < c.length && !window.requestAnimationFrame; ++a) { window.requestAnimationFrame = window[c[a] + "RequestAnimationFrame"]; window.cancelAnimationFrame = window[c[a] + "CancelAnimationFrame"] || window[c[a] + "CancelRequestAnimationFrame"] } if (!window.requestAnimationFrame) { window.requestAnimationFrame = function (h, e) { var d = new Date().getTime(); var f = Math.max(0, 16 - (d - b)); var g = window.setTimeout(function () { h(d + f) }, f); b = d + f; return g } } if (!window.cancelAnimationFrame) { window.cancelAnimationFrame = function (d) { clearTimeout(d) } } }());
+
+        /*
+         * Point class
+         */
+        var Point = (function () {
+            function Point(x, y) {
+                this.x = (typeof x !== 'undefined') ? x : 0;
+                this.y = (typeof y !== 'undefined') ? y : 0;
+            }
+            Point.prototype.clone = function () {
+                return new Point(this.x, this.y);
+            };
+            Point.prototype.length = function (length) {
+                if (typeof length == 'undefined')
+                    return Math.sqrt(this.x * this.x + this.y * this.y);
+                this.normalize();
+                this.x *= length;
+                this.y *= length;
+                return this;
+            };
+            Point.prototype.normalize = function () {
+                var length = this.length();
+                this.x /= length;
+                this.y /= length;
+                return this;
+            };
+            return Point;
+        })();
+
+        /*
+         * Particle class
+         */
+        var Particle = (function () {
+            function Particle() {
+                this.position = new Point();
+                this.velocity = new Point();
+                this.acceleration = new Point();
+                this.age = 0;
+            }
+            Particle.prototype.initialize = function (x, y, dx, dy) {
+                this.position.x = x;
+                this.position.y = y;
+                this.velocity.x = dx;
+                this.velocity.y = dy;
+                this.acceleration.x = dx * settings.particles.effect;
+                this.acceleration.y = dy * settings.particles.effect;
+                this.age = 0;
+            };
+            Particle.prototype.update = function (deltaTime) {
+                this.position.x += this.velocity.x * deltaTime;
+                this.position.y += this.velocity.y * deltaTime;
+                this.velocity.x += this.acceleration.x * deltaTime;
+                this.velocity.y += this.acceleration.y * deltaTime;
+                this.age += deltaTime;
+            };
+            Particle.prototype.draw = function (context, image) {
+                function ease(t) {
+                    return (--t) * t * t + 1;
+                }
+                var size = image.width * ease(this.age / settings.particles.duration);
+                context.globalAlpha = 1 - this.age / settings.particles.duration;
+                context.drawImage(image, this.position.x - size / 2, this.position.y - size / 2, size, size);
+            };
+            return Particle;
+        })();
+
+        /*
+         * ParticlePool class
+         */
+        var ParticlePool = (function () {
+            var particles,
+                firstActive = 0,
+                firstFree = 0,
+                duration = settings.particles.duration;
+
+            function ParticlePool(length) {
+                particles = new Array(length);
+                for (var i = 0; i < particles.length; i++)
+                    particles[i] = new Particle();
+            }
+            ParticlePool.prototype.add = function (x, y, dx, dy) {
+                particles[firstFree].initialize(x, y, dx, dy);
+
+                firstFree++;
+                if (firstFree == particles.length) firstFree = 0;
+                if (firstActive == firstFree) firstActive++;
+                if (firstActive == particles.length) firstActive = 0;
+            };
+            ParticlePool.prototype.update = function (deltaTime) {
+                var i;
+
+                if (firstActive < firstFree) {
+                    for (i = firstActive; i < firstFree; i++)
+                        particles[i].update(deltaTime);
+                }
+                if (firstFree < firstActive) {
+                    for (i = firstActive; i < particles.length; i++)
+                        particles[i].update(deltaTime);
+                    for (i = 0; i < firstFree; i++)
+                        particles[i].update(deltaTime);
+                }
+
+                while (particles[firstActive].age >= duration && firstActive != firstFree) {
+                    firstActive++;
+                    if (firstActive == particles.length) firstActive = 0;
+                }
+
+            };
+            ParticlePool.prototype.draw = function (context, image) {
+                var i;
+                if (firstActive < firstFree) {
+                    for (i = firstActive; i < firstFree; i++)
+                        particles[i].draw(context, image);
+                }
+                if (firstFree < firstActive) {
+                    for (i = firstActive; i < particles.length; i++)
+                        particles[i].draw(context, image);
+                    for (i = 0; i < firstFree; i++)
+                        particles[i].draw(context, image);
+                }
+            };
+            return ParticlePool;
+        })();
+
+        /*
+         * Putting it all together
+         */
+        (function (canvas) {
+            var context = canvas.getContext('2d'),
+                particles = new ParticlePool(settings.particles.length),
+                particleRate = settings.particles.length / settings.particles.duration, // particles/sec
+                time,
+                h1 = document.querySelector('h1'),
+                clickTexts = ["最爱你啦大宝~"],
+                isPlaying = false,
+                // 音乐播放器控制
+                musicPlayer = document.getElementById('musicPlayer'),
+                audioPlaying = true;
+
+            // 显示初始文字
+            setTimeout(() => {
+                h1.style.opacity = 1;
+            }, 500);
+
+            // 音乐播放器点击控制
+            musicPlayer.addEventListener('click', function() {
+                // 获取iframe内的播放器元素
+                const iframe = musicPlayer.querySelector('iframe');
+                try {
+                    // 尝试调用播放器的播放/暂停功能
+                    if (audioPlaying) {
+                        iframe.contentWindow.postMessage('pause', '*');
+                        musicPlayer.classList.remove('playing');
+                    } else {
+                        iframe.contentWindow.postMessage('play', '*');
+                        musicPlayer.classList.add('playing');
                     }
-                    bearContainer.appendChild(pixel);
+                    audioPlaying = !audioPlaying;
+                } catch (e) {
+                    console.log('控制音乐播放失败:', e);
                 }
             });
-        });
 
-        // 加黑色圆眼睛（更萌）
-        const eye1 = document.createElement('div');
-        eye1.style.position = 'absolute';
-        eye1.style.width = '6px';
-        eye1.style.height = '6px';
-        eye1.style.left = '33px';
-        eye1.style.top = '27px';
-        eye1.style.backgroundColor = '#333';
-        eye1.style.borderRadius = '50%';
-        bearContainer.appendChild(eye1);
+            // 初始时添加播放类以启动旋转
+            setTimeout(() => {
+                musicPlayer.classList.add('playing');
+            }, 1000);
 
-        const eye2 = document.createElement('div');
-        eye2.style.position = 'absolute';
-        eye2.style.width = '6px';
-        eye2.style.height = '6px';
-        eye2.style.left = '51px';
-        eye2.style.top = '27px';
-        eye2.style.backgroundColor = '#333';
-        eye2.style.borderRadius = '50%';
-        bearContainer.appendChild(eye2);
-    }
-    
-    // 小熊移动控制
-    let bearX = 0;
-    let bearY = 0;
-    function moveBear(direction) {
-        const bear = document.getElementById('bear');
-        const step = 12;
-        
-        switch(direction) {
-            case 'left': bearX -= step; break;
-            case 'right': bearX += step; break;
-            case 'up': bearY -= step; break;
-            case 'down': bearY += step; break;
-        }
-        
-        bear.style.transform = `translate(${bearX}px, ${bearY}px)`;
-    }
-    
-    // 小熊跳舞（优化动作：加旋转）
-    function danceBear() {
-        const bear = document.getElementById('bear');
-        let originalX = bearX;
-        let originalY = bearY;
-        let danceStep = 0;
-        
-        const danceInterval = setInterval(() => {
-            danceStep++;
-            if (danceStep > 25) {
-                clearInterval(danceInterval);
-                bearX = originalX;
-                bearY = originalY;
-                bear.style.transform = `translate(${bearX}px, ${bearY}px)`;
-                return;
+            function pointOnHeart(t) {
+                return new Point(
+                    160 * Math.pow(Math.sin(t), 3),
+                    130 * Math.cos(t) - 50 * Math.cos(2 * t) - 20 * Math.cos(3 * t) - 10 * Math.cos(4 * t) + 25
+                );
             }
-            
-            // 活泼舞动轨迹（上下跳+左右摇+轻微旋转）
-            const x = originalX + Math.sin(danceStep * 0.6) * 25;
-            const y = originalY + Math.sin(danceStep * 1.2) * 15;
-            bear.style.transform = `translate(${x}px, ${y}px) rotate(${Math.sin(danceStep * 0.8) * 5}deg)`;
-        }, 80);
-    }
-    
-    // 笑话数据（萌系风格）
-    const jokes = [
-        "小熊买了新枕头，第二天说：“这枕头太好睡啦，我都不想起床～”",
-        "小草莓不开心，因为它觉得自己“好酸”，没人喜欢它～",
-        "小兔子买面包，老板问要哪种，它说：“要胡萝卜味的，不然我不吃哦～”",
-        "小猫咪学打字，打了半天只打出“喵喵喵”，原来它只会这个呀～",
-        "小云朵哭了，太阳公公问为什么，它说：“我胖得快掉下来啦～”"
-    ];
-    
-    // 更换笑话
-    function changeJoke() {
-        const idx = Math.floor(Math.random() * jokes.length);
-        document.getElementById('jokeText').textContent = jokes[idx];
-    }
-    
-    // 暖心话语（可爱语气）
-    const comfortPhrases = [
-        "佳茵姐姐别难过啦～我让小猫给你跳个舞，好不好呀～",
-        "你要时刻保持着快乐的心情哦，不要让不开心笼罩自己呀",
-        "不开心的时候就想一想我呀～我会一直在的～",
-        "今天的坏心情到此为止吧，因为我要开始扮演倒霉熊逗你开心啦～"
-    ];
-    
-    // 更换暖心话
-    function changeComfort() {
-        const idx = Math.floor(Math.random() * comfortPhrases.length);
-        document.getElementById('comfortText').textContent = comfortPhrases[idx];
-    }
-    
-    // 鼓励话语（萌系激励）
-    const encouragePhrases = [
-        "你非常厉害的！要继续加油呀，我相信你～",
-        "不要灰心～慢慢来，一切都会好起来哒～",
-        "你已经做得很好啦～累了就休息，休息好了继续，我一直在你身后哦～",
-        "不要质疑自己，你付出的努力我都看得到，不管怎样我都支持你～"
-    ];
-    
-    // 更换鼓励话
-    function changeEncourage() {
-        const idx = Math.floor(Math.random() * encouragePhrases.length);
-        document.getElementById('encourageText').textContent = encouragePhrases[idx];
-    }
-    
-    // 提交逻辑（保留原有功能）
-    function sy_a(){
-        const mood = select_a.value;
-        hideAllBlocks();
-        
-        switch(mood){
-            case "a": 
-                block1.style.display = "block";
-                createBear(); 
-                break;
-            case "b": 
-                block3.style.display = "block";
-                changeComfort(); 
-                break;
-            case "c": 
-                block2.style.display = "block";
-                changeJoke(); 
-                break;
-            case "d": 
-                block4.style.display = "block";
-                changeEncourage(); 
-                break;
-            case "e": 
-                alert("佳茵姐姐别EMO啦～抱抱你～一切都会好起来的～💖");
-                break;
-            default:
-                alert("先选择你的心情呀～选好再点确认哦～✨");
-        }
-    }
+
+            var image = (function () {
+                var canvas = document.createElement('canvas'),
+                    context = canvas.getContext('2d');
+                canvas.width = settings.particles.size;
+                canvas.height = settings.particles.size;
+                function to(t) {
+                    var point = pointOnHeart(t);
+                    point.x = settings.particles.size / 2 + point.x * settings.particles.size / 350;
+                    point.y = settings.particles.size / 2 - point.y * settings.particles.size / 350;
+                    return point;
+                }
+                context.beginPath();
+                var t = -Math.PI;
+                var point = to(t);
+                context.moveTo(point.x, point.y);
+                while (t < Math.PI) {
+                    t += 0.01;
+                    point = to(t);
+                    context.lineTo(point.x, point.y);
+                }
+                context.closePath();
+                context.fillStyle = '#ea80b0';
+                context.fill();
+                var image = new Image();
+                image.src = canvas.toDataURL();
+                return image;
+            })();
+
+            // 点击效果函数
+            function createClickEffect(x, y) {
+                // 选择文字
+                var text = clickTexts[Math.floor(Math.random() * clickTexts.length)];
+
+                // 创建文字元素
+                var div = document.createElement('div');
+                div.className = 'click-effect';
+                div.textContent = text;
+                div.style.left = x + 'px';
+                div.style.top = y + 'px';
+                div.style.fontSize = (20 + Math.random() * 10) + 'px';
+
+                document.body.appendChild(div);
+
+                // 动画结束后移除元素
+                setTimeout(() => {
+                    div.remove();
+                }, 1000);
+
+                // 在点击位置生成额外的粒子
+                for (var i = 0; i < 30; i++) {
+                    var angle = Math.random() * Math.PI * 2;
+                    var speed = 20 + Math.random() * 50;
+                    var dx = Math.cos(angle) * speed;
+                    var dy = Math.sin(angle) * speed;
+                    particles.add(x, y, dx, dy);
+                }
+            }
+
+            function render() {
+                requestAnimationFrame(render);
+
+                var newTime = new Date().getTime() / 1000,
+                    deltaTime = newTime - (time || newTime);
+                time = newTime;
+
+                context.clearRect(0, 0, canvas.width, canvas.height);
+
+                var amount = particleRate * deltaTime;
+                for (var i = 0; i < amount; i++) {
+                    var pos = pointOnHeart(Math.PI - 2 * Math.PI * Math.random());
+                    var dir = pos.clone().length(settings.particles.velocity);
+                    // 确保爱心在画布中心生成
+                    particles.add(canvas.width / 2 + pos.x, canvas.height / 2 - pos.y, dir.x, -dir.y);
+                }
+
+                particles.update(deltaTime);
+                particles.draw(context, image);
+            }
+
+            function onResize() {
+                // 确保canvas尺寸正确，使爱心居中
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            window.onresize = onResize;
+
+            // 点击事件处理
+            canvas.addEventListener('click', function (e) {
+                // 第一次点击隐藏提示文字
+                if (!isPlaying) {
+                    h1.style.opacity = 0;
+                    isPlaying = true;
+                }
+
+                // 创建点击效果
+                createClickEffect(e.clientX, e.clientY);
+            });
+
+            setTimeout(function () {
+                onResize();
+                render();
+            }, 10);
+        })(document.getElementById('pinkboard'));
     </script>
 </body>
+
 </html>
