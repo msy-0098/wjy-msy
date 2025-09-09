@@ -20,26 +20,30 @@
             position: absolute;
             width: 100%;
             height: 100%;
+            z-index: 5;
         }
 
         h1 {
             color: hotpink;
             text-align: center;
             position: absolute;
+            /* 精确居中定位，确保在爱心几何中心 */
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%);
+            transform: translate(-50%, -45%); /* 微调Y轴位置，更贴合爱心视觉中心 */
             margin: 0;
             z-index: 10;
             font-size: 2.5em;
-            opacity: 0;
-            transition: opacity 0.5s ease;
+            opacity: 1; /* 始终显示 */
+            text-shadow: 0 0 10px rgba(255, 105, 180, 0.7);
+            pointer-events: none; /* 确保点击穿透文字，不影响下方交互 */
         }
 
         /* 适配小屏幕字体大小 */
         @media (max-width: 768px) {
             h1 {
                 font-size: 1.8em;
+                transform: translate(-50%, -40%); /* 移动端微调，适应爱心比例 */
             }
         }
 
@@ -160,21 +164,30 @@
 
     <script>
         /*
-         * 设备检测与粒子数量适配
+         * 设备检测与性能分级
          */
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        const isLowEndDevice = isMobile || 
+                              (navigator.hardwareConcurrency && navigator.hardwareConcurrency < 4) ||
+                              (screen.width < 768);
+        
+        // 根据设备性能调整参数
         var settings = {
             particles: {
-                length: isMobile ? 400 : 800, // 手机设备减少粒子数量
-                duration: 2,
-                velocity: isMobile ? 80 : 100, // 手机设备降低速度
+                length: isLowEndDevice ? 150 : (isMobile ? 300 : 800),
+                duration: isLowEndDevice ? 1.5 : 2,
+                velocity: isLowEndDevice ? 60 : (isMobile ? 70 : 100),
                 effect: -0.75,
-                size: isMobile ? 20 : 30, // 手机设备减小粒子大小
+                size: isLowEndDevice ? 15 : (isMobile ? 18 : 30),
+                spawnRate: isLowEndDevice ? 0.6 : 1
             },
+            animation: {
+                frameSkip: isLowEndDevice ? 1 : 0
+            }
         };
 
         /*
-         * RequestAnimationFrame polyfill by Erik Möller
+         * RequestAnimationFrame polyfill
          */
         (function () { var b = 0; var c = ["ms", "moz", "webkit", "o"]; for (var a = 0; a < c.length && !window.requestAnimationFrame; ++a) { window.requestAnimationFrame = window[c[a] + "RequestAnimationFrame"]; window.cancelAnimationFrame = window[c[a] + "CancelAnimationFrame"] || window[c[a] + "CancelRequestAnimationFrame"] } if (!window.requestAnimationFrame) { window.requestAnimationFrame = function (h, e) { var d = new Date().getTime(); var f = Math.max(0, 16 - (d - b)); var g = window.setTimeout(function () { h(d + f) }, f); b = d + f; return g } } if (!window.cancelAnimationFrame) { window.cancelAnimationFrame = function (d) { clearTimeout(d) } } }());
 
@@ -183,14 +196,14 @@
          */
         var Point = (function () {
             function Point(x, y) {
-                this.x = (typeof x !== 'undefined') ? x : 0;
-                this.y = (typeof y !== 'undefined') ? y : 0;
+                this.x = x || 0;
+                this.y = y || 0;
             }
             Point.prototype.clone = function () {
                 return new Point(this.x, this.y);
             };
             Point.prototype.length = function (length) {
-                if (typeof length == 'undefined')
+                if (length === undefined)
                     return Math.sqrt(this.x * this.x + this.y * this.y);
                 this.normalize();
                 this.x *= length;
@@ -198,7 +211,7 @@
                 return this;
             };
             Point.prototype.normalize = function () {
-                var length = this.length();
+                var length = this.length() || 1;
                 this.x /= length;
                 this.y /= length;
                 return this;
@@ -215,6 +228,7 @@
                 this.velocity = new Point();
                 this.acceleration = new Point();
                 this.age = 0;
+                this.dead = false;
             }
             Particle.prototype.initialize = function (x, y, dx, dy) {
                 this.position.x = x;
@@ -224,21 +238,36 @@
                 this.acceleration.x = dx * settings.particles.effect;
                 this.acceleration.y = dy * settings.particles.effect;
                 this.age = 0;
+                this.dead = false;
             };
             Particle.prototype.update = function (deltaTime) {
+                if (this.dead) return;
+                
                 this.position.x += this.velocity.x * deltaTime;
                 this.position.y += this.velocity.y * deltaTime;
                 this.velocity.x += this.acceleration.x * deltaTime;
                 this.velocity.y += this.acceleration.y * deltaTime;
                 this.age += deltaTime;
+                
+                if (this.age >= settings.particles.duration) {
+                    this.dead = true;
+                }
             };
             Particle.prototype.draw = function (context, image) {
-                function ease(t) {
-                    return (--t) * t * t + 1;
-                }
-                var size = image.width * ease(this.age / settings.particles.duration);
-                context.globalAlpha = 1 - this.age / settings.particles.duration;
-                context.drawImage(image, this.position.x - size / 2, this.position.y - size / 2, size, size);
+                if (this.dead) return;
+                
+                var progress = this.age / settings.particles.duration;
+                var ease = 1 - progress * progress;
+                var size = image.width * ease;
+                
+                context.globalAlpha = 1 - progress;
+                context.drawImage(
+                    image, 
+                    this.position.x - size / 2, 
+                    this.position.y - size / 2, 
+                    size, 
+                    size
+                );
             };
             return Particle;
         })();
@@ -248,92 +277,92 @@
          */
         var ParticlePool = (function () {
             var particles,
-                firstActive = 0,
-                firstFree = 0,
-                duration = settings.particles.duration;
+                activeCount = 0;
 
             function ParticlePool(length) {
                 particles = new Array(length);
-                for (var i = 0; i < particles.length; i++)
+                for (var i = 0; i < particles.length; i++) {
                     particles[i] = new Particle();
+                }
             }
+            
+            ParticlePool.prototype.getFreeParticle = function () {
+                for (var i = 0; i < particles.length; i++) {
+                    if (particles[i].dead) {
+                        return particles[i];
+                    }
+                }
+                return null;
+            };
+            
             ParticlePool.prototype.add = function (x, y, dx, dy) {
-                particles[firstFree].initialize(x, y, dx, dy);
-
-                firstFree++;
-                if (firstFree == particles.length) firstFree = 0;
-                if (firstActive == firstFree) firstActive++;
-                if (firstActive == particles.length) firstActive = 0;
+                var particle = this.getFreeParticle();
+                if (particle) {
+                    particle.initialize(x, y, dx, dy);
+                    activeCount++;
+                }
             };
+            
             ParticlePool.prototype.update = function (deltaTime) {
-                var i;
-
-                if (firstActive < firstFree) {
-                    for (i = firstActive; i < firstFree; i++)
+                activeCount = 0;
+                for (var i = 0; i < particles.length; i++) {
+                    if (!particles[i].dead) {
                         particles[i].update(deltaTime);
+                        if (!particles[i].dead) activeCount++;
+                    }
                 }
-                if (firstFree < firstActive) {
-                    for (i = firstActive; i < particles.length; i++)
-                        particles[i].update(deltaTime);
-                    for (i = 0; i < firstFree; i++)
-                        particles[i].update(deltaTime);
-                }
-
-                while (particles[firstActive].age >= duration && firstActive != firstFree) {
-                    firstActive++;
-                    if (firstActive == particles.length) firstActive = 0;
-                }
-
             };
+            
             ParticlePool.prototype.draw = function (context, image) {
-                var i;
-                if (firstActive < firstFree) {
-                    for (i = firstActive; i < firstFree; i++)
-                        particles[i].draw(context, image);
-                }
-                if (firstFree < firstActive) {
-                    for (i = firstActive; i < particles.length; i++)
-                        particles[i].draw(context, image);
-                    for (i = 0; i < firstFree; i++)
-                        particles[i].draw(context, image);
+                var canvasWidth = context.canvas.width;
+                var canvasHeight = context.canvas.height;
+                var maxSize = image.width;
+                
+                for (var i = 0; i < particles.length; i++) {
+                    var particle = particles[i];
+                    if (!particle.dead) {
+                        if (particle.position.x + maxSize > 0 && 
+                            particle.position.x - maxSize < canvasWidth &&
+                            particle.position.y + maxSize > 0 && 
+                            particle.position.y - maxSize < canvasHeight) {
+                            
+                            particle.draw(context, image);
+                        }
+                    }
                 }
             };
+            
+            ParticlePool.prototype.getActiveCount = function () {
+                return activeCount;
+            };
+            
             return ParticlePool;
         })();
 
         /*
-         * Putting it all together
+         * 主程序
          */
         (function (canvas) {
             var context = canvas.getContext('2d'),
                 particles = new ParticlePool(settings.particles.length),
-                particleRate = settings.particles.length / settings.particles.duration, // particles/sec
+                particleRate = settings.particles.length / settings.particles.duration * settings.particles.spawnRate,
                 time,
+                frameCount = 0,
                 h1 = document.querySelector('h1'),
                 clickTexts = ["最爱你啦大宝~"],
-                isPlaying = false,
-                // 音乐播放器控制
                 musicPlayer = document.getElementById('musicPlayer'),
                 audioPlaying = true,
                 audioBackup = document.getElementById('audioBackup');
 
-            // 显示初始文字并保持存在
-            setTimeout(() => {
-                h1.style.opacity = 1;
-            }, 500);
-
-            // 音乐播放错误处理和备用方案
+            // 音乐播放设置
             function setupAudio() {
-                // 尝试检测iframe是否加载成功
                 const iframe = musicPlayer.querySelector('iframe');
                 let iframeLoaded = false;
                 
-                // 监听iframe加载事件
                 iframe.onload = function() {
                     iframeLoaded = true;
                 };
                 
-                // 5秒后如果iframe未加载成功，则使用备用音频
                 setTimeout(() => {
                     if (!iframeLoaded) {
                         console.log('使用备用音频播放器');
@@ -342,15 +371,14 @@
                         });
                         musicPlayer.classList.add('playing');
                     }
-                }, 5000);
+                }, 3000);
             }
 
-            // 音乐播放器点击控制
+            // 音乐播放器控制
             musicPlayer.addEventListener('click', function() {
                 try {
                     const iframe = musicPlayer.querySelector('iframe');
                     
-                    // 先尝试控制iframe播放器
                     if (audioPlaying) {
                         iframe.contentWindow.postMessage('pause', '*');
                         audioBackup.pause();
@@ -363,7 +391,6 @@
                     audioPlaying = !audioPlaying;
                 } catch (e) {
                     console.log('控制音乐播放失败，尝试备用方案:', e);
-                    // 直接控制备用音频
                     if (audioPlaying) {
                         audioBackup.pause();
                     } else {
@@ -374,53 +401,67 @@
                 }
             });
 
-            // 初始时添加播放类以启动旋转
             setTimeout(() => {
                 musicPlayer.classList.add('playing');
-                setupAudio(); // 启动音频检测
+                setupAudio();
             }, 1000);
 
-            function pointOnHeart(t) {
-                return new Point(
-                    160 * Math.pow(Math.sin(t), 3),
-                    130 * Math.cos(t) - 50 * Math.cos(2 * t) - 20 * Math.cos(3 * t) - 10 * Math.cos(4 * t) + 25
-                );
+            // 预计算爱心形状点
+            const heartPointsCache = [];
+            for (let t = -Math.PI; t < Math.PI; t += 0.05) {
+                heartPointsCache.push({
+                    x: 160 * Math.pow(Math.sin(t), 3),
+                    y: 130 * Math.cos(t) - 50 * Math.cos(2 * t) - 20 * Math.cos(3 * t) - 10 * Math.cos(4 * t) + 25
+                });
+            }
+            
+            // 从缓存获取爱心点，确保粒子从爱心形状生成
+            function pointOnHeart() {
+                const idx = Math.floor(Math.random() * heartPointsCache.length);
+                return new Point(heartPointsCache[idx].x, heartPointsCache[idx].y);
             }
 
+            // 创建粒子图像
             var image = (function () {
                 var canvas = document.createElement('canvas'),
                     context = canvas.getContext('2d');
                 canvas.width = settings.particles.size;
                 canvas.height = settings.particles.size;
+                
                 function to(t) {
-                    var point = pointOnHeart(t);
+                    var point = new Point(
+                        160 * Math.pow(Math.sin(t), 3),
+                        130 * Math.cos(t) - 50 * Math.cos(2 * t) - 20 * Math.cos(3 * t) - 10 * Math.cos(4 * t) + 25
+                    );
                     point.x = settings.particles.size / 2 + point.x * settings.particles.size / 350;
                     point.y = settings.particles.size / 2 - point.y * settings.particles.size / 350;
                     return point;
                 }
+                
                 context.beginPath();
                 var t = -Math.PI;
                 var point = to(t);
                 context.moveTo(point.x, point.y);
+                
                 while (t < Math.PI) {
-                    t += 0.01;
+                    t += 0.1;
                     point = to(t);
                     context.lineTo(point.x, point.y);
                 }
+                
                 context.closePath();
                 context.fillStyle = '#ea80b0';
                 context.fill();
+                
                 var image = new Image();
                 image.src = canvas.toDataURL();
                 return image;
             })();
 
-            // 点击效果函数
+            // 点击效果
             function createClickEffect(x, y) {
-                // 选择文字
                 var text = clickTexts[Math.floor(Math.random() * clickTexts.length)];
 
-                // 创建文字元素
                 var div = document.createElement('div');
                 div.className = 'click-effect';
                 div.textContent = text;
@@ -430,13 +471,12 @@
 
                 document.body.appendChild(div);
 
-                // 动画结束后移除元素
                 setTimeout(() => {
                     div.remove();
                 }, 1000);
 
-                // 在点击位置生成额外的粒子
-                for (var i = 0; i < 30; i++) {
+                const particleCount = isLowEndDevice ? 10 : 30;
+                for (var i = 0; i < particleCount; i++) {
                     var angle = Math.random() * Math.PI * 2;
                     var speed = 20 + Math.random() * 50;
                     var dx = Math.cos(angle) * speed;
@@ -445,57 +485,96 @@
                 }
             }
 
+            // 渲染循环
             function render() {
                 requestAnimationFrame(render);
+                
+                frameCount++;
+                if (frameCount % (settings.animation.frameSkip + 1) !== 0) {
+                    return;
+                }
 
-                var newTime = new Date().getTime() / 1000,
+                var newTime = performance.now() / 1000,
                     deltaTime = newTime - (time || newTime);
                 time = newTime;
 
+                if (deltaTime > 0.1) deltaTime = 0.1;
+
                 context.clearRect(0, 0, canvas.width, canvas.height);
 
-                var amount = particleRate * deltaTime;
+                var activeCount = particles.getActiveCount();
+                var maxParticles = settings.particles.length;
+                var spawnFactor = 1 - (activeCount / maxParticles);
+                var amount = particleRate * deltaTime * spawnFactor;
+                
+                if (amount > 10) amount = 10;
+                
+                // 确保粒子从爱心中心生成，与文字位置匹配
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                
                 for (var i = 0; i < amount; i++) {
-                    var pos = pointOnHeart(Math.PI - 2 * Math.PI * Math.random());
+                    var pos = pointOnHeart();
                     var dir = pos.clone().length(settings.particles.velocity);
-                    // 确保爱心在画布中心生成
-                    particles.add(canvas.width / 2 + pos.x, canvas.height / 2 - pos.y, dir.x, -dir.y);
+                    // 粒子从中心向外扩散，确保爱心以文字为中心
+                    particles.add(centerX + pos.x, centerY - pos.y, dir.x, -dir.y);
                 }
 
                 particles.update(deltaTime);
                 particles.draw(context, image);
             }
 
+            // 调整尺寸，确保中心位置正确
             function onResize() {
-                // 确保canvas尺寸正确，使爱心居中
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
+                if (canvas.width === window.innerWidth && canvas.height === window.innerHeight) {
+                    return;
+                }
+                
+                canvas.style.width = window.innerWidth + 'px';
+                canvas.style.height = window.innerHeight + 'px';
+                
+                const dpr = isLowEndDevice ? 1 : (window.devicePixelRatio || 1);
+                const rect = canvas.getBoundingClientRect();
+                canvas.width = rect.width * dpr;
+                canvas.height = rect.height * dpr;
+                
+                context.scale(dpr, dpr);
+                
+                // 窗口大小变化时重新定位文字，确保始终在中心
+                const h1 = document.querySelector('h1');
+                h1.style.top = '50%';
+                h1.style.left = '50%';
+                h1.style.transform = isMobile ? 'translate(-50%, -40%)' : 'translate(-50%, -45%)';
             }
-            window.onresize = onResize;
+            
+            // 防抖处理resize
+            let resizeTimeout;
+            window.addEventListener('resize', function() {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(onResize, 100);
+            });
 
-            // 点击事件处理 - 移除了隐藏文字的逻辑
+            // 点击事件
             canvas.addEventListener('click', function (e) {
-                // 创建点击效果
                 createClickEffect(e.clientX, e.clientY);
                 
-                // 移动端点击时尝试播放音乐（解决自动播放限制）
                 if (isMobile && !audioPlaying) {
                     musicPlayer.click();
                 }
             });
 
-            // 支持触摸事件
+            // 触摸事件
             canvas.addEventListener('touchstart', function (e) {
-                e.preventDefault(); // 防止默认行为
+                e.preventDefault();
                 var touch = e.touches[0];
                 createClickEffect(touch.clientX, touch.clientY);
                 
-                // 移动端触摸时尝试播放音乐
                 if (!audioPlaying) {
                     musicPlayer.click();
                 }
             }, { passive: false });
 
+            // 初始化
             setTimeout(function () {
                 onResize();
                 render();
