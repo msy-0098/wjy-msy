@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>爱心</title>
     <style>
         html,
@@ -33,6 +34,13 @@
             font-size: 2.5em;
             opacity: 0;
             transition: opacity 0.5s ease;
+        }
+
+        /* 适配小屏幕字体大小 */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8em;
+            }
         }
 
         /* 点击效果样式 */
@@ -125,6 +133,11 @@
             opacity: 0;
             pointer-events: none;
         }
+
+        /* 音频播放器备选方案 */
+        .audio-backup {
+            display: none;
+        }
     </style>
 </head>
 
@@ -139,19 +152,24 @@
                 width="330" height="86" 
                 src="//music.163.com/outchain/player?type=2&id=2617640682&auto=1&height=66">
         </iframe>
+        <!-- 备用音频播放器 -->
+        <audio class="audio-backup" id="audioBackup" loop>
+            <source src="https://music.163.com/song/media/outer/url?id=2617640682.mp3" type="audio/mpeg">
+        </audio>
     </div>
 
     <script>
         /*
-         * Settings
+         * 设备检测与粒子数量适配
          */
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
         var settings = {
             particles: {
-                length: 800, // 爱心的粒子数量
-                duration: 2, // 爱心扩散速度，值越小速度越快
-                velocity: 100, // 爱心扩散速度，值越小速度越慢
-                effect: -0.75, // 爱心收缩效果，比如1扩散，-2收缩
-                size: 30, // 粒子大小
+                length: isMobile ? 400 : 800, // 手机设备减少粒子数量
+                duration: 2,
+                velocity: isMobile ? 80 : 100, // 手机设备降低速度
+                effect: -0.75,
+                size: isMobile ? 20 : 30, // 手机设备减小粒子大小
             },
         };
 
@@ -296,35 +314,70 @@
                 isPlaying = false,
                 // 音乐播放器控制
                 musicPlayer = document.getElementById('musicPlayer'),
-                audioPlaying = true;
+                audioPlaying = true,
+                audioBackup = document.getElementById('audioBackup');
 
-            // 显示初始文字
+            // 显示初始文字并保持存在
             setTimeout(() => {
                 h1.style.opacity = 1;
             }, 500);
 
-            // 音乐播放器点击控制
-            musicPlayer.addEventListener('click', function() {
-                // 获取iframe内的播放器元素
+            // 音乐播放错误处理和备用方案
+            function setupAudio() {
+                // 尝试检测iframe是否加载成功
                 const iframe = musicPlayer.querySelector('iframe');
-                try {
-                    // 尝试调用播放器的播放/暂停功能
-                    if (audioPlaying) {
-                        iframe.contentWindow.postMessage('pause', '*');
-                        musicPlayer.classList.remove('playing');
-                    } else {
-                        iframe.contentWindow.postMessage('play', '*');
+                let iframeLoaded = false;
+                
+                // 监听iframe加载事件
+                iframe.onload = function() {
+                    iframeLoaded = true;
+                };
+                
+                // 5秒后如果iframe未加载成功，则使用备用音频
+                setTimeout(() => {
+                    if (!iframeLoaded) {
+                        console.log('使用备用音频播放器');
+                        audioBackup.play().catch(e => {
+                            console.log('备用播放器也无法自动播放，需要用户交互:', e);
+                        });
                         musicPlayer.classList.add('playing');
                     }
+                }, 5000);
+            }
+
+            // 音乐播放器点击控制
+            musicPlayer.addEventListener('click', function() {
+                try {
+                    const iframe = musicPlayer.querySelector('iframe');
+                    
+                    // 先尝试控制iframe播放器
+                    if (audioPlaying) {
+                        iframe.contentWindow.postMessage('pause', '*');
+                        audioBackup.pause();
+                    } else {
+                        iframe.contentWindow.postMessage('play', '*');
+                        audioBackup.play().catch(e => console.log('备用播放器播放失败:', e));
+                    }
+                    
+                    musicPlayer.classList.toggle('playing');
                     audioPlaying = !audioPlaying;
                 } catch (e) {
-                    console.log('控制音乐播放失败:', e);
+                    console.log('控制音乐播放失败，尝试备用方案:', e);
+                    // 直接控制备用音频
+                    if (audioPlaying) {
+                        audioBackup.pause();
+                    } else {
+                        audioBackup.play().catch(e => console.log('备用播放器播放失败:', e));
+                    }
+                    musicPlayer.classList.toggle('playing');
+                    audioPlaying = !audioPlaying;
                 }
             });
 
             // 初始时添加播放类以启动旋转
             setTimeout(() => {
                 musicPlayer.classList.add('playing');
+                setupAudio(); // 启动音频检测
             }, 1000);
 
             function pointOnHeart(t) {
@@ -420,17 +473,28 @@
             }
             window.onresize = onResize;
 
-            // 点击事件处理
+            // 点击事件处理 - 移除了隐藏文字的逻辑
             canvas.addEventListener('click', function (e) {
-                // 第一次点击隐藏提示文字
-                if (!isPlaying) {
-                    h1.style.opacity = 0;
-                    isPlaying = true;
-                }
-
                 // 创建点击效果
                 createClickEffect(e.clientX, e.clientY);
+                
+                // 移动端点击时尝试播放音乐（解决自动播放限制）
+                if (isMobile && !audioPlaying) {
+                    musicPlayer.click();
+                }
             });
+
+            // 支持触摸事件
+            canvas.addEventListener('touchstart', function (e) {
+                e.preventDefault(); // 防止默认行为
+                var touch = e.touches[0];
+                createClickEffect(touch.clientX, touch.clientY);
+                
+                // 移动端触摸时尝试播放音乐
+                if (!audioPlaying) {
+                    musicPlayer.click();
+                }
+            }, { passive: false });
 
             setTimeout(function () {
                 onResize();
