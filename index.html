@@ -14,15 +14,26 @@
             position: absolute;
             width: 100%;
             height: 100%;
-            display: block;
         }
         #pinkboard {
             animation: anim 1.5s ease-in-out infinite;
+            -webkit-animation: anim 1.5s ease-in-out infinite;
+            -o-animation: anim 1.5s ease-in-out infinite;
+            -moz-animation: anim 1.5s ease-in-out infinite;
         }
         @keyframes anim {
-            0%, 100% { transform: scale(0.8); }
-            25%, 75% { transform: scale(0.7); }
+            0% { transform: scale(0.8); }
+            25% { transform: scale(0.7); }
             50% { transform: scale(1); }
+            75% { transform: scale(0.7); }
+            100% { transform: scale(0.8); }
+        }
+        @-webkit-keyframes anim {
+            0% { -webkit-transform: scale(0.8); }
+            25% { -webkit-transform: scale(0.7); }
+            50% { -webkit-transform: scale(1); }
+            75% { -webkit-transform: scale(0.7); }
+            100% { -webkit-transform: scale(0.8); }
         }
         #name {
             position: absolute;
@@ -30,9 +41,9 @@
             left: 50%;
             transform: translate(-50%, -50%);
             margin-top: -20px;
-            font-size: clamp(24px, 5vw, 46px);
+            font-size: clamp(24px, 8vw, 46px);
             color: #ea80b0;
-            pointer-events: none;
+            text-align: center;
         }
     </style>
 </head>
@@ -41,188 +52,177 @@
 <canvas id="canvas"></canvas>
 
 <script type="text/javascript">
-    // 性能优化：使用常量和缓存
-    const loverName = "WJY";
+    var loverName = "WJY💗MSY";
     const colors = [
-        "#eec996", "#8fb7d3", "#b7d4c6", "#c3bedd", "#f1d5e4", 
-        "#cae1d3", "#f3c89d", "#d0b0c3", "#819d53", "#c99294", 
-        "#cec884", "#ff8e70", "#e0a111", "#fffdf6", "#cbd7ac", 
+        "#eec996", "#8fb7d3", "#b7d4c6", "#c3bedd", "#f1d5e4",
+        "#cae1d3", "#f3c89d", "#d0b0c3", "#819d53", "#c99294",
+        "#cec884", "#ff8e70", "#e0a111", "#fffdf6", "#cbd7ac",
         "#e8c6c0", "#dc9898", "#ecc8ba"
     ];
-    const COLOR_COUNT = colors.length;
-    
-    // 获取画布和上下文
-    const canvas = document.getElementById("canvas");
-    const ctx = canvas.getContext("2d");
-    let hearts = [];
-    let ww, wh;
-    let lastTime = 0;
-    const MAX_HEARTS = 100;
-    
-    // 初始化尺寸
-    function resizeCanvas() {
-        ww = window.innerWidth;
-        wh = window.innerHeight;
-        canvas.width = ww;
-        canvas.height = wh;
-    }
-    
-    // 心形文字类
-    class Heart {
-        constructor() {
-            this.reset();
-        }
-        
-        reset() {
-            this.x = Math.random() * ww;
-            this.y = Math.random() * wh;
-            this.opacity = Math.random() * 0.5 + 0.5;
-            this.vel = {
-                x: (Math.random() - 0.5) * 4,
-                y: (Math.random() - 0.5) * 4
-            };
-            this.targetScale = Math.random() * 0.15 + 0.02;
-            this.scale = this.targetScale * Math.random();
-            this.width = 473.8;
-            this.height = 408.6;
-        }
-        
-        update(deltaTime) {
-            this.x += this.vel.x * deltaTime * 60; // 基于时间的动画
-            this.y += this.vel.y * deltaTime * 60;
-            this.scale += (this.targetScale - this.scale) * 0.01 * (deltaTime * 60);
-            
-            // 边界检查，超出屏幕则重置
-            if (this.x - this.width > ww || this.x + this.width < 0 ||
-                this.y - this.height > wh || this.y + this.height < 0) {
-                this.reset();
-            }
-        }
-        
-        draw(index) {
-            ctx.globalAlpha = this.opacity;
-            ctx.font = `${180 * this.scale}px "宋体"`;
-            ctx.fillStyle = colors[index % COLOR_COUNT];
-            ctx.fillText(
-                loverName,
-                this.x - this.width * 0.5,
-                this.y - this.height * 0.5,
-                this.width,
-                this.height
-            );
-        }
-    }
-    
-    // 渲染函数 - 使用时间戳控制动画速度
-    function render(timestamp) {
-        const deltaTime = (timestamp - lastTime) / 1000;
-        lastTime = timestamp;
-        
-        ctx.clearRect(0, 0, ww, wh);
-        
-        for (let i = 0; i < MAX_HEARTS; i++) {
-            hearts[i].update(deltaTime);
-            hearts[i].draw(i);
-        }
-        
-        requestAnimationFrame(render);
-    }
-    
-    // 初始化
+
+    var canvas = document.getElementById("canvas");
+    var ctx = canvas.getContext("2d");
+    let count = 1;
+    var ww = window.innerWidth;
+    var wh = window.innerHeight;
+    var hearts = [];
+
     function init() {
-        resizeCanvas();
-        // 预创建心形对象池
-        for (let i = 0; i < MAX_HEARTS; i++) {
+        requestAnimationFrame(render);
+        resizeCanvas(); // 初始化时设置正确尺寸
+        for (var i = 0; i < 100; i++) {
             hearts.push(new Heart());
         }
+    }
+
+    function resizeCanvas() {
+        // 设置canvas实际尺寸为窗口大小
+        canvas.width = ww;
+        canvas.height = wh;
+        // 获取pinkboard画布并设置相同尺寸
+        const pinkboard = document.getElementById("pinkboard");
+        pinkboard.width = ww;
+        pinkboard.height = wh;
+    }
+
+    function Heart() {
+        this.x = Math.random() * ww;
+        this.y = Math.random() * wh;
+        this.opacity = Math.random() * 0.5 + 0.5;
+        this.vel = {
+            x: (Math.random() - 0.5) * 3, // 减小移动速度适应手机
+            y: (Math.random() - 0.5) * 3
+        };
+        // 根据屏幕宽度调整大小比例
+        this.targetScale = Math.random() * 0.1 + 0.02;
+        this.scale = this.targetScale * Math.random();
+    }
+
+    Heart.prototype.update = function (i) {
+        this.x += this.vel.x;
+        this.y += this.vel.y;
+        this.scale += (this.targetScale - this.scale) * 0.01;
+        
+        // 边界检测优化
+        if (this.x > ww + 50) this.x = -50;
+        if (this.x < -50) this.x = ww + 50;
+        if (this.y > wh + 50) this.y = -50;
+        if (this.y < -50) this.y = wh + 50;
+
+        // 根据屏幕尺寸动态调整宽高
+        this.width = ww * 0.3; // 宽度为屏幕宽度的30%
+        this.height = wh * 0.2; // 高度为屏幕高度的20%
+    };
+
+    Heart.prototype.draw = function (i) {
+        ctx.globalAlpha = this.opacity;
+        // 根据屏幕宽度动态调整字体大小
+        const fontSize = Math.min(ww * 0.1, 180) * this.scale;
+        ctx.font = `${fontSize}px "宋体"`;
+        ctx.fillStyle = colors[i % 18];
+        ctx.fillText(
+            loverName,
+            this.x - this.width * 0.5,
+            this.y - this.height * 0.5,
+            this.width,
+            this.height
+        );
+    };
+
+    function render() {
+        ctx.clearRect(0, 0, ww, wh);
+        for (var i = 0; i < 100; i++) {
+            hearts[i].update(i);
+            hearts[i].draw(i);
+        }
         requestAnimationFrame(render);
     }
-    
-    // 监听窗口大小变化
-    window.addEventListener("resize", resizeCanvas);
-    
-    // 启动
+
+    // 处理窗口大小变化
+    window.addEventListener("resize", function () {
+        ww = window.innerWidth;
+        wh = window.innerHeight;
+        resizeCanvas();
+    });
+
     init();
 </script>
 
 <script>
-    /* 粒子效果优化版 */
-    const settings = {
+    /* 粒子效果设置 */
+    var settings = {
         particles: {
-            length: 300, // 适当减少粒子数量提升性能
+            length: Math.min(300, window.innerWidth * 1.5), // 根据屏幕宽度调整粒子数量
             duration: 2,
-            velocity: 100,
+            velocity: 80, // 降低速度适应手机
             effect: -0.75,
-            size: 30,
+            size: Math.min(20, window.innerWidth * 0.05) // 粒子大小适应屏幕
         },
     };
 
     /* RequestAnimationFrame polyfill */
-    (function() {
-        let lastTime = 0;
-        const vendors = ['ms', 'moz', 'webkit', 'o'];
-        for(let x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
-            window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
-            window.cancelAnimationFrame = window[vendors[x]+'CancelAnimationFrame'] 
-                || window[vendors[x]+'CancelRequestAnimationFrame'];
+    (function () {
+        var b = 0;
+        var c = ["ms", "moz", "webkit", "o"];
+        for (var a = 0; a < c.length && !window.requestAnimationFrame; ++a) {
+            window.requestAnimationFrame = window[c[a] + "RequestAnimationFrame"];
+            window.cancelAnimationFrame =
+                window[c[a] + "CancelAnimationFrame"] ||
+                window[c[a] + "CancelRequestAnimationFrame"];
         }
-
         if (!window.requestAnimationFrame) {
-            window.requestAnimationFrame = function(callback) {
-                const currTime = new Date().getTime();
-                const timeToCall = Math.max(0, 16 - (currTime - lastTime));
-                const id = window.setTimeout(() => callback(currTime + timeToCall), timeToCall);
-                lastTime = currTime + timeToCall;
-                return id;
+            window.requestAnimationFrame = function (h, e) {
+                var d = new Date().getTime();
+                var f = Math.max(0, 16 - (d - b));
+                var g = window.setTimeout(function () {
+                    h(d + f);
+                }, f);
+                b = d + f;
+                return g;
             };
         }
-
         if (!window.cancelAnimationFrame) {
-            window.cancelAnimationFrame = function(id) {
-                clearTimeout(id);
+            window.cancelAnimationFrame = function (d) {
+                clearTimeout(d);
             };
         }
     })();
 
-    /* 点类 */
-    class Point {
-        constructor(x = 0, y = 0) {
-            this.x = x;
-            this.y = y;
+    /* Point class */
+    var Point = (function () {
+        function Point(x, y) {
+            this.x = typeof x !== "undefined" ? x : 0;
+            this.y = typeof y !== "undefined" ? y : 0;
         }
-        
-        clone() {
+        Point.prototype.clone = function () {
             return new Point(this.x, this.y);
-        }
-        
-        length(length) {
-            if (typeof length === 'undefined') {
+        };
+        Point.prototype.length = function (length) {
+            if (typeof length == "undefined")
                 return Math.sqrt(this.x * this.x + this.y * this.y);
-            }
             this.normalize();
             this.x *= length;
             this.y *= length;
             return this;
-        }
-        
-        normalize() {
-            const length = this.length();
+        };
+        Point.prototype.normalize = function () {
+            var length = this.length();
             this.x /= length;
             this.y /= length;
             return this;
-        }
-    }
+        };
+        return Point;
+    })();
 
-    /* 粒子类 */
-    class Particle {
-        constructor() {
+    /* Particle class */
+    var Particle = (function () {
+        function Particle() {
             this.position = new Point();
             this.velocity = new Point();
             this.acceleration = new Point();
             this.age = 0;
         }
-        
-        initialize(x, y, dx, dy) {
+        Particle.prototype.initialize = function (x, y, dx, dy) {
             this.position.x = x;
             this.position.y = y;
             this.velocity.x = dx;
@@ -230,21 +230,19 @@
             this.acceleration.x = dx * settings.particles.effect;
             this.acceleration.y = dy * settings.particles.effect;
             this.age = 0;
-        }
-        
-        update(deltaTime) {
+        };
+        Particle.prototype.update = function (deltaTime) {
             this.position.x += this.velocity.x * deltaTime;
             this.position.y += this.velocity.y * deltaTime;
             this.velocity.x += this.acceleration.x * deltaTime;
             this.velocity.y += this.acceleration.y * deltaTime;
             this.age += deltaTime;
-        }
-        
-        draw(context, image) {
-            // 缓动函数缓存
-            const ease = (t) => --t * t * t + 1;
-            const size = image.width * ease(this.age / settings.particles.duration);
-            
+        };
+        Particle.prototype.draw = function (context, image) {
+            function ease(t) {
+                return --t * t * t + 1;
+            }
+            var size = image.width * ease(this.age / settings.particles.duration);
             context.globalAlpha = 1 - this.age / settings.particles.duration;
             context.drawImage(
                 image,
@@ -253,134 +251,126 @@
                 size,
                 size
             );
-        }
-    }
+        };
+        return Particle;
+    })();
 
-    /* 粒子池类 - 对象池模式减少GC */
-    class ParticlePool {
-        constructor(length) {
-            this.particles = new Array(length);
-            for (let i = 0; i < this.particles.length; i++) {
-                this.particles[i] = new Particle();
-            }
-            this.firstActive = 0;
-            this.firstFree = 0;
-            this.duration = settings.particles.duration;
+    /* ParticlePool class */
+    var ParticlePool = (function () {
+        var particles,
+            firstActive = 0,
+            firstFree = 0,
+            duration = settings.particles.duration;
+
+        function ParticlePool(length) {
+            particles = new Array(length);
+            for (var i = 0; i < particles.length; i++)
+                particles[i] = new Particle();
         }
-        
-        add(x, y, dx, dy) {
-            this.particles[this.firstFree].initialize(x, y, dx, dy);
-            
-            // 循环队列处理
-            this.firstFree++;
-            if (this.firstFree === this.particles.length) this.firstFree = 0;
-            if (this.firstActive === this.firstFree) this.firstActive++;
-            if (this.firstActive === this.particles.length) this.firstActive = 0;
-        }
-        
-        update(deltaTime) {
-            if (this.firstActive < this.firstFree) {
-                for (let i = this.firstActive; i < this.firstFree; i++) {
-                    this.particles[i].update(deltaTime);
-                }
-            } else if (this.firstFree < this.firstActive) {
-                for (let i = this.firstActive; i < this.particles.length; i++) {
-                    this.particles[i].update(deltaTime);
-                }
-                for (let i = 0; i < this.firstFree; i++) {
-                    this.particles[i].update(deltaTime);
-                }
+        ParticlePool.prototype.add = function (x, y, dx, dy) {
+            particles[firstFree].initialize(x, y, dx, dy);
+            firstFree++;
+            if (firstFree == particles.length) firstFree = 0;
+            if (firstActive == firstFree) firstActive++;
+            if (firstActive == particles.length) firstActive = 0;
+        };
+        ParticlePool.prototype.update = function (deltaTime) {
+            var i;
+            if (firstActive < firstFree) {
+                for (i = firstActive; i < firstFree; i++)
+                    particles[i].update(deltaTime);
             }
-            
-            // 移除 inactive 粒子
-            while (this.particles[this.firstActive].age >= this.duration && 
-                   this.firstActive !== this.firstFree) {
-                this.firstActive++;
-                if (this.firstActive === this.particles.length) this.firstActive = 0;
+            if (firstFree < firstActive) {
+                for (i = firstActive; i < particles.length; i++)
+                    particles[i].update(deltaTime);
+                for (i = 0; i < firstFree; i++) particles[i].update(deltaTime);
             }
-        }
-        
-        draw(context, image) {
-            if (this.firstActive < this.firstFree) {
-                for (let i = this.firstActive; i < this.firstFree; i++) {
-                    this.particles[i].draw(context, image);
-                }
-            } else if (this.firstFree < this.firstActive) {
-                for (let i = this.firstActive; i < this.particles.length; i++) {
-                    this.particles[i].draw(context, image);
-                }
-                for (let i = 0; i < this.firstFree; i++) {
-                    this.particles[i].draw(context, image);
-                }
+            while (
+                particles[firstActive].age >= duration &&
+                firstActive != firstFree
+            ) {
+                firstActive++;
+                if (firstActive == particles.length) firstActive = 0;
             }
-        }
-    }
+        };
+        ParticlePool.prototype.draw = function (context, image) {
+            if (firstActive < firstFree) {
+                for (i = firstActive; i < firstFree; i++)
+                    particles[i].draw(context, image);
+            }
+            if (firstFree < firstActive) {
+                for (i = firstActive; i < particles.length; i++)
+                    particles[i].draw(context, image);
+                for (i = 0; i < firstFree; i++) particles[i].draw(context, image);
+            }
+        };
+        return ParticlePool;
+    })();
 
     /* 初始化粒子效果 */
-    (function(canvas) {
-        const context = canvas.getContext("2d");
-        const particles = new ParticlePool(settings.particles.length);
-        const particleRate = settings.particles.length / settings.particles.duration;
-        let time;
-        
-        // 心形路径计算
+    (function (canvas) {
+        var context = canvas.getContext("2d"),
+            particles = new ParticlePool(settings.particles.length),
+            particleRate = settings.particles.length / settings.particles.duration,
+            time;
+
         function pointOnHeart(t) {
             return new Point(
                 160 * Math.pow(Math.sin(t), 3),
-                130 * Math.cos(t) - 50 * Math.cos(2 * t) - 
-                20 * Math.cos(3 * t) - 10 * Math.cos(4 * t) + 25
+                130 * Math.cos(t) -
+                50 * Math.cos(2 * t) -
+                20 * Math.cos(3 * t) -
+                10 * Math.cos(4 * t) +
+                25
             );
         }
-        
-        // 创建粒子图像
-        const image = (function() {
-            const canvas = document.createElement("canvas");
-            const context = canvas.getContext("2d");
+
+        var image = (function () {
+            var canvas = document.createElement("canvas"),
+                context = canvas.getContext("2d");
             canvas.width = settings.particles.size;
             canvas.height = settings.particles.size;
-            
+
             function to(t) {
-                const point = pointOnHeart(t);
-                point.x = settings.particles.size / 2 + (point.x * settings.particles.size) / 350;
-                point.y = settings.particles.size / 2 - (point.y * settings.particles.size) / 350;
+                var point = pointOnHeart(t);
+                point.x =
+                    settings.particles.size / 2 +
+                    (point.x * settings.particles.size) / 350;
+                point.y =
+                    settings.particles.size / 2 -
+                    (point.y * settings.particles.size) / 350;
                 return point;
             }
-            
+
             context.beginPath();
-            let t = -Math.PI;
-            let point = to(t);
+            var t = -Math.PI;
+            var point = to(t);
             context.moveTo(point.x, point.y);
-            
             while (t < Math.PI) {
                 t += 0.01;
                 point = to(t);
                 context.lineTo(point.x, point.y);
             }
-            
             context.closePath();
             context.fillStyle = "#ea80b0";
             context.fill();
-            
-            const image = new Image();
+            var image = new Image();
             image.src = canvas.toDataURL();
             return image;
         })();
-        
-        // 渲染函数
-        function render(timestamp) {
+
+        function render() {
             requestAnimationFrame(render);
-            
-            const newTime = timestamp / 1000;
-            const deltaTime = newTime - (time || newTime);
+            var newTime = new Date().getTime() / 1000,
+                deltaTime = newTime - (time || newTime);
             time = newTime;
-            
+
             context.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // 基于时间创建新粒子
-            const amount = particleRate * deltaTime;
-            for (let i = 0; i < amount; i++) {
-                const pos = pointOnHeart(Math.PI - 2 * Math.PI * Math.random());
-                const dir = pos.clone().length(settings.particles.velocity);
+
+            var amount = particleRate * deltaTime;
+            for (var i = 0; i < amount; i++) {
+                var pos = pointOnHeart(Math.PI - 2 * Math.PI * Math.random());
+                var dir = pos.clone().length(settings.particles.velocity);
                 particles.add(
                     canvas.width / 2 + pos.x,
                     canvas.height / 2 - pos.y,
@@ -388,23 +378,23 @@
                     -dir.y
                 );
             }
-            
+
             particles.update(deltaTime);
             particles.draw(context, image);
         }
-        
-        // 处理尺寸调整
+
         function onResize() {
             canvas.width = canvas.clientWidth;
             canvas.height = canvas.clientHeight;
+            // 调整粒子数量适应屏幕
+            settings.particles.length = Math.min(300, canvas.width * 1.5);
         }
+
+        window.addEventListener('resize', onResize);
         
-        window.addEventListener("resize", onResize);
-        
-        // 启动
-        setTimeout(() => {
+        setTimeout(function () {
             onResize();
-            render(0);
+            render();
         }, 10);
     })(document.getElementById("pinkboard"));
 </script>
